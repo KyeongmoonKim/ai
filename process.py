@@ -46,6 +46,7 @@ for name in name_list:
 		data.append(name)
 		test_writer.writerow(data)
 	fr.close()
-
+train_writer.writerow([-1])
+test_writer.writerow([-1])
 x_train.close()
 x_test.close()
