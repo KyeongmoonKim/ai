@@ -1,5 +1,6 @@
 import csv
 import random
+import math
 
 name_list = ['AABA','AAPL','AMZN','GOOGL','IBM','KO'] #file name_list
 
@@ -14,12 +15,14 @@ x_train = open('x_train.csv', 'w', encoding='utf-8')
 x_test = open('x_test.csv', 'w', encoding='utf-8')
 train_writer = csv.writer(x_train)
 test_writer = csv.writer(x_test)
+dataNum = 200
 for name in name_list:
 	num = 0
 	fr = open(name+'_2006-01-01_to_2018-01-01.csv', 'r', encoding='utf-8')
 	row_list = []
 	for i in range(0, 144): #2006.01~2017.12
-		row_list.append([i])
+		row_list.append([])
+
 	rdr = csv.reader(fr)
 	for line in rdr: #divide idx accordng to date
 		if(line[0]=="-1"): break
@@ -27,20 +30,27 @@ for name in name_list:
 			idx = parser(line[0])
 			row_list[idx].append([num, line[0], line[1]])
 		num = num+1
-	for i in range(0, 1000): #train data making
+	
+	for i in range(0, 144):
+		random.shuffle(row_list[i])
+
+	for i in range(0, dataNum): #train data making
 		data = []
-		for j in range(0, 144):
-			n = len(row_list[j])
-			idx = random.randrange(1, n)
+		for j in range(0, 144): #2/3 to tran
+			n = math.floor(len(row_list[j])*2/3);
+	#		n = len(row_list[j]);
+			idx = random.randrange(0, n)
 			data.append(row_list[j][idx][1])
 			data.append(row_list[j][idx][2])
 		data.append(name)
 		train_writer.writerow(data)
-	for i in range(0, 1000): #test data making
+	for i in range(0, dataNum): #test data making
 		data = []
-		for j in range(0, 144):
+		for j in range(0, 144): #1/3 to train
 			n = len(row_list[j])
-			idx = random.randrange(1, n)
+			st = math.floor(n*2/3);
+			idx = random.randrange(st, n)
+	#		idx = random.randrange(0, n)
 			data.append(row_list[j][idx][1])
 			data.append(row_list[j][idx][2])
 		data.append(name)
