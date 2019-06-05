@@ -4,76 +4,58 @@ import csv
 import datetime
 np.random.seed(42)
 
-def get_data(input): #first version, only up and down value
-	ret = []
-	#for i in range(0, 143):
-	#	ret.append(float(input[2*i+1])-float(input[2*i+3]))
-	#return ret #86.2%
-	#for i in range(0, 143):
-	#	ret.append(float(input[2*i+1]))
-	#return ret #100%, overfit. other data.
-	for i in range(0, 143): #version for multi observation in one time step.
-		d1 = datetime.datetime.strptime(input[2*i+2], '%Y-%m-%d')
-		d0 = datetime.datetime.strptime(input[2*i], '%Y-%m-%d')
-		ret.append([(d1-d0).days])
-		ret.append([float(input[2*i+1])-float(input[2*i+3])])
-	return ret
-
-def get_idx(str):
-	if(str=="AABA"):
-		return 0
-	elif(str=="AAPL"):
-		return 1
-	elif(str=="AMZN"):
-		return 2
-	elif(str=="GOOGL"):
-		return 3
-	elif(str=="IBM"):
-		return 4
-	else:
-		return 5
-
 x_train = open('x_train.csv', 'r', encoding='utf-8')
-x_test = open('x_test.csv', 'r', encoding='utf-8')
+x_test = open('mnist_test.csv', 'r', encoding='utf-8')
 train_reader = csv.reader(x_train)
 test_reader = csv.reader(x_test)
 
+train_size = 1000
+test_size = 1000
 model_list = []
 components_size = 20
-st_prob = [0.05]*components_size
-tr_prob = []
-for i in range(0, components_size):
-	tr_prob.append([0.05]*components_size)
-for i in range(0, 6):
+
+for i in range(0, 10):
 	temp = hmm.GaussianHMM(n_components = components_size, covariance_type="diag")
 	temp.n_iter=100
 	temp.tol=0.01
 	model_list.append(temp)
+
 num = 0
-lengths = [2]*143
-print(lengths)
+#lengths = [2]*143
+
 for line in train_reader:
+	if(num==0):
+		num = num+1
+		continue
+	if(num > train_size):
+		break
 	if(num%100==0):
 		print(num)
-	if(line[0]=="-1"):
-		break;
-	#X = np.array(get_data(line)).reshape(-1, 1)
-	X = np.array(get_data(line))
-	model_list[get_idx(line[288])].fit(X, lengths)
+	sub_list = line[1:len(line)]
+	sub_list = list(map(lambda i : int(i), sub_list))
+	X = np.array(sub_list).reshape(-1, 1)
+	#print(X)
+	model_list[int(line[0])].fit(X)
 	num = num+1
 answer = 0
 n = 0
 print("train finished")
 for line in test_reader:
-	if(line[0]=="-1"):
-		break;
-	#X = np.array(get_data(line)).reshape(-1, 1)
-	X = np.array(get_data(line))
+	if(n==0):
+		n = n+1
+		continue
+	if(n > test_size):
+		break
+	if(n%100==0):
+		print(n)
+	sub_list = line[1:len(line)]
+	sub_list = list(map(lambda i : int(i), sub_list))
+	X = np.array(sub_list).reshape(-1, 1)
 	Y = []
-	for i in range(0, 6):
-		Y.append(model_list[i].score(X,lengths))
+	for i in range(0, 10):
+		Y.append(model_list[i].score(X))
 	inference = Y.index(max(Y))
-	if(inference == get_idx(line[288])):
+	if(inference == int(line[0])):
 		answer = answer + 1
 	n = n+1
 x_train.close()
