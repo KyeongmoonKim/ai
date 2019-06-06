@@ -1,2 +1,4 @@
 16.42% (raw data, train 1000, test 1000)
-30.32% (angle vector, tran 1000, test 3000)
+30.32% (vectorize, normalize, angle vector, train 1000, test 3000)
+34.22% (vectorize, normalize, angle vecotr, train 3000, test 3000)
+(noist one more try)
