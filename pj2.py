@@ -31,7 +31,7 @@ def conv(target, filter, target_size, filter_size):
 	for i in range(0, n):
 		for j in range(0, n):
 			value = conv_one_step(target, filter, i, j, target_size, filter_size)
-			ret.append([value])
+			ret.append(value)
 	return ret
 
 for i in range(0, 10):
@@ -51,7 +51,17 @@ def pair_list(list1, list2): #list1, list2 same len
 		ret.append(list2[i])
 	return ret
 
-lengths = [2]*676
+def max_pooling(target, target_size): #pooling size 2
+	n = int(target_size / 2)
+	ret = []
+	for i in range(0, n):
+		for j in range(0, n):
+			temp1 = max(target[2*i*target_size + 2 * j], target[2*i*target_size + 2 * j + 1])
+			temp2 = max(target[(2*i+1)*target_size + 2 * j], target[(2*i+1)*target_size + 2 * j + 1])
+			ret.append(max(temp1, temp2))
+	return ret
+
+lengths = [2] * 169
 
 
 print("train start")
@@ -67,8 +77,10 @@ for line in train_reader:
 	sub_list = line[1:len(line)]
 	sub_list = list(map(lambda i : int(i), sub_list))
 	X1 = conv(sub_list, my_filter1, my_target_size, my_filter_size)
+	X1 = max_pooling(X1, 26)
 	X2 = conv(sub_list, my_filter2, my_target_size, my_filter_size)
-	X = np.array(pair_list(X1,X2))
+	X2 = max_pooling(X2, 26)
+	X = np.array(pair_list(X1,X2)).reshape(-1, 1)
 	model_list[int(line[0])].fit(X, lengths)
 	num = num+1
 answer = 0
@@ -85,8 +97,10 @@ for line in test_reader:
 	sub_list = line[1:len(line)]
 	sub_list = list(map(lambda i : int(i), sub_list))
 	X1 = conv(sub_list, my_filter1, my_target_size, my_filter_size)
+	X1 = max_pooling(X1, 26)
 	X2 = conv(sub_list, my_filter2, my_target_size, my_filter_size)
-	X = np.array(pair_list(X1,X2))
+	X2 = max_pooling(X2, 26)
+	X = np.array(pair_list(X1,X2)).reshape(-1, 1)
 	Y = []
 	for i in range(0, 10):
 		Y.append(model_list[i].score(X, lengths))
