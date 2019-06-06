@@ -5,34 +5,14 @@ import random
 np.random.seed(42)
 
 x_train = open('x_train.csv', 'r', encoding='utf-8')
-x_test = open('mnist_test.csv', 'r', encoding='utf-8')
+x_test = open('x_test.csv', 'r', encoding='utf-8')
 train_reader = csv.reader(x_train)
 test_reader = csv.reader(x_test)
 
 train_size = 1000
-test_size = 1000
+test_size = 3000
 model_list = []
-components_size = 20
-my_filter1 = [0, 0, 1.0, 1.0] #horizon
-my_filter2 = [0, 1.0, 0, 1.0] #vertical
-my_filter_size = 2;
-my_target_size = 28;
-
-def conv_one_step(target, filter, row, col, target_size, filter_size): #(row, col) of target, square t_s*t_s, f_s*f_s
-	ret = 0
-	for i in range(0, filter_size):
-		for j in range(0, filter_size):
-			ret = ret + target[(row + i) * target_size + col+j] * filter[i * filter_size+j]
-	return ret
-			
-def conv(target, filter, target_size, filter_size):
-	ret = []
-	n = target_size - filter_size + 1
-	for i in range(0, n):
-		for j in range(0, n):
-			value = conv_one_step(target, filter, i, j, target_size, filter_size)
-			ret.append(value)
-	return ret
+components_size = 10
 
 for i in range(0, 10):
 	temp = hmm.GaussianHMM(n_components = components_size, covariance_type="diag")
@@ -42,70 +22,74 @@ for i in range(0, 10):
 
 num = 0
 
-def pair_list(list1, list2): #list1, list2 same len
-	if(len(list1)!=len(list2)):
-		return []
+def data_process(li):
 	ret = []
-	for i in range(0, len(list1)):
-		ret.append(list1[i])
-		ret.append(list2[i])
+	length = int(len(li)/2)
+	for i in range(0, length-1):
+		ret.append(li[2*i+2]-li[2*i])
+		ret.append(li[2*i+3]-li[2*i+1])
 	return ret
 
-def max_pooling(target, target_size): #pooling size 2
-	n = int(target_size / 2)
+def add_mid_point(li):
 	ret = []
-	for i in range(0, n):
-		for j in range(0, n):
-			temp1 = max(target[2*i*target_size + 2 * j], target[2*i*target_size + 2 * j + 1])
-			temp2 = max(target[(2*i+1)*target_size + 2 * j], target[(2*i+1)*target_size + 2 * j + 1])
-			ret.append(max(temp1, temp2))
+	length = int(len(li)/2)
+	for i in range(0, length-1):
+		ret.append(li[2*i])
+		ret.append(li[2*i+1])
+		ret.append((li[2*i]+li[2*i+2])/2)
+		ret.append((li[2*i+1]+li[2*i+3])/2)
 	return ret
-
-lengths = [2] * 169
-
 
 print("train start")
 
 for line in train_reader:
-	if(num==0):
-		num = num+1
-		continue
+	if(num%50 == 0):
+		print(num)
 	if(num > train_size):
 		break
-	if(num%100==0):
-		print(num)
-	sub_list = line[1:len(line)]
-	sub_list = list(map(lambda i : int(i), sub_list))
-	X1 = conv(sub_list, my_filter1, my_target_size, my_filter_size)
-	X1 = max_pooling(X1, 26)
-	X2 = conv(sub_list, my_filter2, my_target_size, my_filter_size)
-	X2 = max_pooling(X2, 26)
-	X = np.array(pair_list(X1,X2)).reshape(-1, 1)
-	model_list[int(line[0])].fit(X, lengths)
+	answer = int(line[2])
+	length = int(line[0])
+	sub_list = line[3:3+length*2]
+	sub_list = list(map(lambda i: float(i), sub_list))
+	if(len(sub_list)==2):
+		continue
+	while len(sub_list)<8 : #2 point case.
+		sub_list = add_mid_point(sub_list)
+	sub_list = data_process(sub_list)
+	while len(sub_list) < 20:
+		#print(num)
+		#print(line[0])
+		#print(sub_list)
+		sub_list = add_mid_point(sub_list)
+	X = np.array(sub_list).reshape(-1, 1)
+	lengths = [2] * int(len(sub_list)/2)
+	model_list[answer].fit(X, lengths)
 	num = num+1
 answer = 0
 n = 0
 print("train finished")
 for line in test_reader:
-	if(n==0):
-		n = n+1
-		continue
+	if(n%50 == 0):
+		print(n)
 	if(n > test_size):
 		break
-	if(n%100==0):
-		print(n)
-	sub_list = line[1:len(line)]
-	sub_list = list(map(lambda i : int(i), sub_list))
-	X1 = conv(sub_list, my_filter1, my_target_size, my_filter_size)
-	X1 = max_pooling(X1, 26)
-	X2 = conv(sub_list, my_filter2, my_target_size, my_filter_size)
-	X2 = max_pooling(X2, 26)
-	X = np.array(pair_list(X1,X2)).reshape(-1, 1)
+	length = int(line[0])
+	sub_list = line[3:3+length*2]
+	sub_list = list(map(lambda i: float(i), sub_list))
+	if(len(sub_list)==2):
+		continue
+	while len(sub_list)<8:
+		sub_list = add_mid_point(sub_list)
+	sub_list = data_process(sub_list)
+	while len(sub_list) < 20:
+		sub_list = add_mid_point(sub_list)
+	X = np.array(sub_list).reshape(-1, 1)
+	lengths = [2] * int(len(sub_list)/2)
 	Y = []
 	for i in range(0, 10):
-		Y.append(model_list[i].score(X, lengths))
+		Y.append(model_list[i].score(X))
 	inference = Y.index(max(Y))
-	if(inference == int(line[0])):
+	if(inference == int(line[2])):
 		answer = answer + 1
 	n = n+1
 x_train.close()

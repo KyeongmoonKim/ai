@@ -3,17 +3,21 @@ import random
 import math
 import numpy as np
 
-input = open('data_pool.csv', 'r', encoding='utf-8')
-input_reader = csv.reader(data_pool.csv)
+input = open('data_rabel_pool.csv', 'r', encoding='utf-8')
+input_reader = csv.reader(input)
 
-x_train = open('x
-temp_train = open('x_train.csv', 'w', encoding='utf-8')
-temp_writer = csv.writer(temp_train)
+x_train = open('x_train.csv', 'w', encoding='utf-8')
+x_test = open('x_test.csv', 'w', encoding='utf-8')
+train_writer = csv.writer(x_train)
+test_writer = csv.writer(x_test)
 num = 0
 
 for line in input_reader:
-	if(num == 5000):
-		break
-	temp_writer.writerow(line)
+	if(num < 20000):
+		train_writer.writerow(line)
+	else:
+		test_writer.writerow(line)
 	num = num+1
+input.close()
 x_train.close()
+x_test.close()
