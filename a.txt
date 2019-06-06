@@ -1,3 +1,2 @@
-12.98% (raw data, train 1000, test 1000)
-19.12% (point difference, train 1000, test 1000)
-21.24% (point difference, train 5000, test 1000)
+16.42% (raw data, train 1000, test 1000)
+30.32% (angle vector, tran 1000, test 3000)

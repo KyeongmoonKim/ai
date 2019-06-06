@@ -3,13 +3,14 @@ from hmmlearn import hmm
 import csv
 import random
 np.random.seed(42)
+import math
 
 x_train = open('x_train.csv', 'r', encoding='utf-8')
 x_test = open('x_test.csv', 'r', encoding='utf-8')
 train_reader = csv.reader(x_train)
 test_reader = csv.reader(x_test)
 
-train_size = 1000
+train_size = 3000
 test_size = 3000
 model_list = []
 components_size = 10
@@ -38,10 +39,63 @@ def add_mid_point(li):
 		ret.append(li[2*i+1])
 		ret.append((li[2*i]+li[2*i+2])/2)
 		ret.append((li[2*i+1]+li[2*i+3])/2)
+	ret.append(li[len(li)-2])
+	ret.append(li[len(li)-1])
+	return ret
+
+def add_mid_vector_with_noise(li):
+	ret = []
+	length = int(len(li)/2)
+	for i in range(0, length-1):
+		ret.append(li[2*i])
+		ret.append(li[2*i+1])
+		temp1 = (li[2*i]+li[2*i+2])/2
+		temp2 = (li[2*i+1]+li[2*i+3])/2
+		v_x = 0.9998*temp1-0.0174*temp2
+		v_y = 0.0174*temp1+0.9998*temp2
+		ret.append(v_x)
+		ret.append(v_y)
+	ret.append(li[len(li)-2])
+	ret.append(li[len(li)-1])
+	return ret
+
+def zero_delete(li): #zero vector delete
+	ret = []
+	length = int(len(li)/2)
+	for i in range(0, length):
+		if(li[2*i] == 0.0 and li[2*i+1] == 0.0):
+			continue
+		else:
+			ret.append(li[2*i])
+			ret.append(li[2*i+1])
+	return ret
+
+def normalize(li): #normalizing, and zero vector delte
+	ret = []
+	length = int(len(li)/2)
+	for i in range(0, length):
+		temp = math.sqrt(li[2*i]*li[2*i] + li[2*i+1]*li[2*i+1])
+		if(temp==0.0):
+			continue
+		else:
+			ret.append(li[2*i]/temp)
+			ret.append(li[2*i+1]/temp)
 	return ret
 
 print("train start")
 
+def data_process2(li): #axis-transmation use, angle calculation, if (zero, zero):continue
+	ret = []
+	length = int(len(li)/2)
+	for i in range(0, length-1):
+		temp1 = li[2*i]*li[2*i+2] + li[2*i+1]*li[2*i+3]
+		temp2 = li[2*i]*li[2*i+3] - li[2*i+1]*li[2*i+2]
+		ret.append(temp1)
+		ret.append(temp2)
+		#ret.append(math.atan2(temp2, temp1))
+	return ret
+
+not_passed = 0
 for line in train_reader:
 	if(num%50 == 0):
 		print(num)
@@ -51,23 +105,32 @@ for line in train_reader:
 	length = int(line[0])
 	sub_list = line[3:3+length*2]
 	sub_list = list(map(lambda i: float(i), sub_list))
-	if(len(sub_list)==2):
+	if(len(sub_list)==2): #only one point : ignore
+		not_passed = not_passed+1
 		continue
 	while len(sub_list)<8 : #2 point case.
 		sub_list = add_mid_point(sub_list)
-	sub_list = data_process(sub_list)
-	while len(sub_list) < 20:
-		#print(num)
-		#print(line[0])
-		#print(sub_list)
+	sub_list = data_process(sub_list) #vectorize
+	sub_list = zero_delete(sub_list) #zero-vector delete
+	if(len(sub_list)<2): #no vetor
+		not_passed = not_passed+1
+		continue
+	if(len(sub_list)==2): #only one vector, because in vector duplicate 1 is ok.
+		sub_list.append(sub_list[0])
+		sub_list.append(sub_list[1])
+	while len(sub_list) < 30:
 		sub_list = add_mid_point(sub_list)
+	sub_list = normalize(sub_list)
+	sub_list = data_process2(sub_list)
 	X = np.array(sub_list).reshape(-1, 1)
 	lengths = [2] * int(len(sub_list)/2)
-	model_list[answer].fit(X, lengths)
+	model_list[answer].fit(X,lengths) #lengths
 	num = num+1
 answer = 0
 n = 0
 print("train finished")
+print("not passed is ")
+print(not_passed)
 for line in test_reader:
 	if(n%50 == 0):
 		print(n)
@@ -76,18 +139,28 @@ for line in test_reader:
 	length = int(line[0])
 	sub_list = line[3:3+length*2]
 	sub_list = list(map(lambda i: float(i), sub_list))
-	if(len(sub_list)==2):
+	if(len(sub_list)==2): #only one point : ignore
+		not_passed = not_passed+1
 		continue
-	while len(sub_list)<8:
+	while len(sub_list)<8 : #2 point case.
 		sub_list = add_mid_point(sub_list)
-	sub_list = data_process(sub_list)
-	while len(sub_list) < 20:
+	sub_list = data_process(sub_list) #vectorize
+	sub_list = zero_delete(sub_list) #zero-vector delete
+	if(len(sub_list)<2): #no vetor
+		not_passed = not_passed+1
+		continue
+	if(len(sub_list)==2): #only one vector, because in vector duplicate 1 is ok.
+		sub_list.append(sub_list[0])
+		sub_list.append(sub_list[1])
+	while len(sub_list) < 30:
 		sub_list = add_mid_point(sub_list)
+	sub_list = normalize(sub_list)
+	sub_list = data_process2(sub_list)
 	X = np.array(sub_list).reshape(-1, 1)
 	lengths = [2] * int(len(sub_list)/2)
 	Y = []
 	for i in range(0, 10):
-		Y.append(model_list[i].score(X))
+		Y.append(model_list[i].score(X, lengths)) #lengths
 	inference = Y.index(max(Y))
 	if(inference == int(line[2])):
 		answer = answer + 1
