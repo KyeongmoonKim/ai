@@ -12,7 +12,7 @@ train_reader = csv.reader(x_train)
 test_reader = csv.reader(x_test)
 result_writer = csv.writer(result)
 
-train_size = 19000
+train_size = 1000
 test_size = 3000
 model_list = []
 components_size = 10
@@ -33,6 +33,39 @@ def data_process(li):
 		ret.append(li[2*i+3]-li[2*i+1])
 	return ret
 
+def add_mid_vector(li):
+	ret = []
+	length = int(len(li)/2)
+	for i in range(0, length):
+		temp1 = (li[2*i]*0.9998-0.0174*li[2*i+1])/2
+		temp2 = (0.0174*li[2*i]+0.9998*li[2*i+1])/2
+		ret.append(temp1)
+		ret.append(temp2)
+		ret.append(li[2*i]-temp1)
+		ret.append(li[2*i+1]-temp2)
+	return ret
+
+def add_mid_vector_random(li):
+	ret = []
+	length = int(len(li)/2)
+	for i in range(0, length):
+		check = random.randint(0,10)
+		if(check<5):
+			temp1 = (li[2*i]*0.9998-0.0174*li[2*i+1])/2
+			temp2 = (0.0174*li[2*i]+0.9998*li[2*i+1])/2
+			ret.append(temp1)
+			ret.append(temp2)
+			ret.append(li[2*i]-temp1)
+			ret.append(li[2*i+1]-temp2)
+		else:
+			temp1 = (li[2*i]*0.9998+0.0174*li[2*i+1])/2
+			temp2 = (0.9998*li[2*i+1]-0.0174*li[2*i])/2
+			ret.append(temp1)
+			ret.append(temp2)
+			ret.append(li[2*i]-temp1)
+			ret.append(li[2*i+1]-temp2)
+	return ret
+
 def add_mid_point(li):
 	ret = []
 	length = int(len(li)/2)
@@ -45,26 +78,22 @@ def add_mid_point(li):
 	ret.append(li[len(li)-1])
 	return ret
 
-def add_mid_vector_with_noise(li):
+def vector_duplicate(li):
 	ret = []
-	length = int(len(li)/2)
-	for i in range(0, length-1):
-		ret.append(li[2*i])
-		ret.append(li[2*i+1])
-		temp1 = (li[2*i]+li[2*i+2])/2
-		temp2 = (li[2*i+1]+li[2*i+3])/2
-		check = random.randrange(0, 2)
-		if(check==0):
-			v_x = 0.9998*temp1-0.0174*temp2
-			v_y = 0.0174*temp1+0.9998*temp2
-		elif(check==1):
-			v_x = 0.9998*temp1+0.0174*temp2
-			v_y = 0.9998*temp2-0.0174*temp1
-		ret.append(v_x)
-		ret.append(v_y)
-	ret.append(li[len(li)-2])
-	ret.append(li[len(li)-1])
+	if(len(li)!=2):
+		print("unexpected length : the number of vectors isn't 1(in vector_duplicate)")
+		return li
+	ret.append(li[0])
+	ret.append(li[1])
+	check = random.randint(0, 2)
+	if(check==0):
+		ret.append(0.9998*li[0]-0.0174*li[1])
+		ret.append(0.0174*li[0]+0.9998*li[1])
+	else:
+		ret.append(0.9998*li[0]+0.0174*li[1])
+		ret.append(0.9998*li[1]-0.0174*li[0])
 	return ret
+		
 
 def zero_delete(li): #zero vector delete
 	ret = []
@@ -102,6 +131,7 @@ def data_process2(li): #axis-transmation use, angle calculation, if (zero, zero)
 		#ret.append(math.atan2(temp2, temp1))
 	return ret
 
+
 not_passed = 0
 for line in train_reader:
 	if(num%50 == 0):
@@ -126,10 +156,10 @@ for line in train_reader:
 		sub_list.append(sub_list[0])
 		sub_list.append(sub_list[1])
 	while len(sub_list) < 30:
-		sub_list = add_mid_vector_with_noise(sub_list)
+		sub_list = add_mid_vector_random(sub_list)
 #		sub_list = add_mid_point(sub_list)
 	sub_list = normalize(sub_list)
-	sub_list = data_process2(sub_list)
+#	sub_list = data_process2(sub_list)
 	X = np.array(sub_list).reshape(-1, 1)
 	lengths = [2] * int(len(sub_list)/2)
 	model_list[answer].fit(X,lengths) #lengths
@@ -161,10 +191,10 @@ for line in test_reader:
 		sub_list.append(sub_list[0])
 		sub_list.append(sub_list[1])
 	while len(sub_list) < 30:
-		sub_list = add_mid_vector_with_noise(sub_list)
+		sub_list = add_mid_vector_random(sub_list)
 #		sub_list = add_mid_point(sub_list)
 	sub_list = normalize(sub_list)
-	sub_list = data_process2(sub_list)
+#	sub_list = data_process2(sub_list)
 	X = np.array(sub_list).reshape(-1, 1)
 	lengths = [2] * int(len(sub_list)/2)
 	Y = []
