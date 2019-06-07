@@ -26,5 +26,7 @@ for line in input_reader:
 	ret.append(line[2])
 	ret.append(line[3])
 	length = 1
+ret = [length] + ret
+output_writer.writerow(ret)
 input.close()
 output.close()

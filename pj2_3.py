@@ -13,9 +13,9 @@ test_reader = csv.reader(x_test)
 result_writer = csv.writer(result)
 
 train_size = 1000
-test_size = 3000
+test_size = 1000
 model_list = []
-components_size = 10
+components_size = 8
 
 for i in range(0, 10):
 	temp = hmm.GaussianHMM(n_components = components_size, covariance_type="diag")
@@ -24,7 +24,7 @@ for i in range(0, 10):
 	model_list.append(temp)
 
 num = 0
-print("?")
+
 def data_process(li):
 	ret = []
 	length = int(len(li)/2)
