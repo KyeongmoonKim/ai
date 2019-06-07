@@ -12,7 +12,7 @@ train_reader = csv.reader(x_train)
 test_reader = csv.reader(x_test)
 result_writer = csv.writer(result)
 
-train_size = 19000
+train_size = 1000
 test_size = 3000
 model_list = []
 components_size = 10
@@ -125,7 +125,7 @@ for line in train_reader:
 	if(len(sub_list)==2): #only one vector, because in vector duplicate 1 is ok.
 		sub_list.append(sub_list[0])
 		sub_list.append(sub_list[1])
-	while len(sub_list) < 30:
+	while len(sub_list) < 40:
 		sub_list = add_mid_vector_with_noise(sub_list)
 #		sub_list = add_mid_point(sub_list)
 	sub_list = normalize(sub_list)
@@ -160,7 +160,7 @@ for line in test_reader:
 	if(len(sub_list)==2): #only one vector, because in vector duplicate 1 is ok.
 		sub_list.append(sub_list[0])
 		sub_list.append(sub_list[1])
-	while len(sub_list) < 30:
+	while len(sub_list) < 40:
 		sub_list = add_mid_vector_with_noise(sub_list)
 #		sub_list = add_mid_point(sub_list)
 	sub_list = normalize(sub_list)
