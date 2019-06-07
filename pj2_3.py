@@ -5,6 +5,9 @@ import random
 np.random.seed(42)
 import math
 
+
+#mid vector insertion, normalization, difference vector 
+
 x_train = open('x_train.csv', 'r', encoding='utf-8')
 x_test = open('x_test.csv', 'r', encoding='utf-8')
 result = open('result.csv', 'w', encoding='utf-8')
@@ -12,8 +15,8 @@ train_reader = csv.reader(x_train)
 test_reader = csv.reader(x_test)
 result_writer = csv.writer(result)
 
-train_size = 1000
-test_size = 1000
+train_size = 3000
+test_size = 3000
 model_list = []
 components_size = 8
 
@@ -153,7 +156,6 @@ for line in train_reader:
 	while len(sub_list) < 40:
 		sub_list = add_mid_vector_random(sub_list)
 	sub_list = normalize(sub_list)
-#	sub_list = data_process2(sub_list)
 	X = np.array(sub_list).reshape(-1, 1)
 	lengths = [2] * int(len(sub_list)/2)
 	model_list[answer].fit(X,lengths) #lengths
@@ -182,7 +184,6 @@ for line in test_reader:
 	while len(sub_list) < 40:
 		sub_list = add_mid_vector_random(sub_list)
 	sub_list = normalize(sub_list)
-#	sub_list = data_process2(sub_list)
 	X = np.array(sub_list).reshape(-1, 1)
 	lengths = [2] * int(len(sub_list)/2)
 	Y = []

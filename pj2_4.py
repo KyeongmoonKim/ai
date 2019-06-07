@@ -5,6 +5,8 @@ import random
 np.random.seed(42)
 import math
 
+#normalizing and get angle difference vector,
+
 x_train = open('x_train.csv', 'r', encoding='utf-8')
 x_test = open('x_test.csv', 'r', encoding='utf-8')
 result = open('result.csv', 'w', encoding='utf-8')
@@ -13,9 +15,9 @@ test_reader = csv.reader(x_test)
 result_writer = csv.writer(result)
 
 train_size = 1000
-test_size = 3000
+test_size = 1000
 model_list = []
-components_size = 10
+components_size = 8
 
 for i in range(0, 10):
 	temp = hmm.GaussianHMM(n_components = components_size, covariance_type="diag")
@@ -24,7 +26,7 @@ for i in range(0, 10):
 	model_list.append(temp)
 
 num = 0
-print("?")
+
 def data_process(li):
 	ret = []
 	length = int(len(li)/2)
@@ -128,28 +130,9 @@ def data_process2(li): #axis-transmation use, angle calculation, if (zero, zero)
 		temp2 = li[2*i]*li[2*i+3] - li[2*i+1]*li[2*i+2]
 		ret.append(temp1)
 		ret.append(temp2)
-		#ret.append(math.atan2(temp2, temp1))
 	return ret
 
-def data_process3(li):
-	ret = []
-	length = int(len(li)/2)
-	for i in range(0, length-1):
-		len1 = math.sqrt(li[2*i]*li[2*i]+li[2*i+1]*li[2*i+1])
-		len2 = math.sqrt(li[2*i+2]*li[2*i+2]+li[2*i+3]*li[2*i+3])
-		if(len1==0.0 or len2==0.0):
-			print("unexpected li in data_process3 : zero vector exist")
-			return li
-		x1 = li[2*i]/len1
-		y1 = li[2*i+1]/len1
-		x2 = li[2*i+2]/len2
-		y2 = li[2*i+3]/len2
-		temp1 = x1*x2 + y1*y2
-		temp2 = x1*y2 - x2*y1
-		theta = math.atan2(temp2, temp1)
-		ret.append(theta)
-		ret.append(len2/len1)
-	return ret
+
 not_passed = 0
 for line in train_reader:
 	if(num%50 == 0):
@@ -170,11 +153,8 @@ for line in train_reader:
 		continue
 	while len(sub_list) < 40:
 		sub_list = add_mid_vector_random(sub_list)
-#	sub_list = normalize(sub_list)
-#	sub_list = data_process2(sub_list)
-#	print(sub_list)
-	sub_list = data_process3(sub_list)
-#	print(sub_list)
+	sub_list = normalize(sub_list)
+	sub_list = data_process2(sub_list)
 	X = np.array(sub_list).reshape(-1, 1)
 	lengths = [2] * int(len(sub_list)/2)
 	model_list[answer].fit(X,lengths) #lengths
@@ -202,9 +182,8 @@ for line in test_reader:
 		continue
 	while len(sub_list) < 40:
 		sub_list = add_mid_vector_random(sub_list)
-#	sub_list = normalize(sub_list)
-#	sub_list = data_process2(sub_list)
-	sub_list = data_process3(sub_list)
+	sub_list = normalize(sub_list)
+	sub_list = data_process2(sub_list)
 	X = np.array(sub_list).reshape(-1, 1)
 	lengths = [2] * int(len(sub_list)/2)
 	Y = []

@@ -1,1 +1,4 @@
-16.18% (raw data, middle point insertion.)
+16.18% (raw data, middle point insertion. pj2_2.py)
+29.77% (difference, middle vector, normalization, train 1000, test 1000, pj2_3.py)
+36.22% (same with the upper. train 3000, test 3000, pj2_3.py)
+42.35% (angle diffenrence vector, after normalization, train 1000, test 1000, pt2_4.py)

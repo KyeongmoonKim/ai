@@ -13,9 +13,9 @@ test_reader = csv.reader(x_test)
 result_writer = csv.writer(result)
 
 train_size = 1000
-test_size = 3000
+test_size = 1000
 model_list = []
-components_size = 5
+components_size = 10
 
 for i in range(0, 10):
 	temp = hmm.GaussianHMM(n_components = components_size, covariance_type="diag")
@@ -31,18 +31,6 @@ def data_process(li):
 	for i in range(0, length-1):
 		ret.append(li[2*i+2]-li[2*i])
 		ret.append(li[2*i+3]-li[2*i+1])
-	return ret
-
-def add_mid_vector_uniform(li):
-	ret = []
-	length = int(len(li)/2)
-	for i in range(0, length):
-		temp1 = li[2*i]/2
-		temp2 = li[2*i+1]/2
-		ret.append(temp1)
-		ret.append(temp2)
-		ret.append(li[2*i]-temp1)
-		ret.append(li[2*i+1]-temp2)
 	return ret
 
 def add_mid_vector(li):
@@ -181,12 +169,10 @@ for line in train_reader:
 		not_passed = not_passed+1
 		continue
 	while len(sub_list) < 40:
-		sub_list = add_mid_vector_uniform(sub_list)
+		sub_list = add_mid_vector_random(sub_list)
 #	sub_list = normalize(sub_list)
-#	sub_list = data_process2(sub_list)
-#	print(sub_list)
-	sub_list = data_process3(sub_list)
-#	print(sub_list)
+	sub_list = data_process2(sub_list)
+#	sub_list = data_process3(sub_list)
 	X = np.array(sub_list).reshape(-1, 1)
 	lengths = [2] * int(len(sub_list)/2)
 	model_list[answer].fit(X,lengths) #lengths
@@ -213,10 +199,10 @@ for line in test_reader:
 		not_passed = not_passed+1
 		continue
 	while len(sub_list) < 40:
-		sub_list = add_mid_vector_uniform(sub_list)
+		sub_list = add_mid_vector_random(sub_list)
 #	sub_list = normalize(sub_list)
-#	sub_list = data_process2(sub_list)
-	sub_list = data_process3(sub_list)
+	sub_list = data_process2(sub_list)
+#	sub_list = data_process3(sub_list)
 	X = np.array(sub_list).reshape(-1, 1)
 	lengths = [2] * int(len(sub_list)/2)
 	Y = []
