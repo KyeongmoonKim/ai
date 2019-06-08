@@ -165,7 +165,7 @@ for line in train_reader:
 		for test_line in test_reader:
 			if((n% 100) == 0):
 				print(n)
-			if(n == test_size):
+			if(n > test_size):
 				break
 			length = int(test_line[0])
 			test_sub_list = test_line[3:3+length*2]
@@ -178,15 +178,21 @@ for line in train_reader:
 			if(len(test_sub_list)<2): #no vetor
 				not_passed = not_passed+1
 				continue
-			while len(test_sub_list) < 30:
+			test_sub_list2 = test_sub_list[0:len(test_sub_list)]
+			while(len(test_sub_list) < 16):
 				test_sub_list = add_mid_vector(test_sub_list)
+				test_sub_list2 = add_mid_vector(test_sub_list2)
 			test_sub_list = normalize(test_sub_list)
+			test_sub_list2 = normalize(test_sub_list2)
 			test_sub_list = data_process2(test_sub_list)
-			test_X = np.array(test_sub_list).reshape(-1, 1)
+			test_sub_list2 = data_process2(test_sub_list2)
+			test_X1 = np.array(test_sub_list).reshape(-1, 1)
+			test_X2 = np.array(test_sub_list2).reshape(-1, 1)
+			test_lengths2 = [2] * int(len(test_sub_list2)/2)
 			test_lengths = [2] * int(len(test_sub_list)/2)
-			Y = []
-			for i in range(0, 10):
-				Y.append(model_list[i].score(test_X, test_lengths)) #lengths
+			Y = [model_list[0].score(test_X2, test_lengths2)]
+			for i in range(1, 10):
+				Y.append(model_list[i].score(test_X1, test_lengths)) #lengths
 			inference = Y.index(max(Y))
 			if(inference == int(test_line[2])):
 				test_answer = test_answer + 1
@@ -196,7 +202,7 @@ for line in train_reader:
 		acculate = (test_answer / n)*100
 		x.append(num)
 		y.append(acculate)
-	if(num == train_size):
+	if(num > train_size):
 		break
 	answer = int(line[2])
 	length = int(line[0])
@@ -210,8 +216,13 @@ for line in train_reader:
 	if(len(sub_list)<2): #no vetor
 		not_passed = not_passed+1
 		continue
-	while len(sub_list) < 30:
-		sub_list = add_mid_vector(sub_list)
+	if(len(sub_list) < 16):
+		if(answer==1): #answer is 1 case
+			while(len(sub_list)) < 16:
+				sub_list = add_mid_vector_uniform(sub_list)
+		else:
+			while len(sub_list) < 16:
+				sub_list = add_mid_vector(sub_list)
 	sub_list = normalize(sub_list)
 	sub_list = data_process2(sub_list)
 	X = np.array(sub_list).reshape(-1, 1)
