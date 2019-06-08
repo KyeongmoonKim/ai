@@ -21,7 +21,7 @@ components_size = 8
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
 ax.set_ylim([0,100])
-ax.set_xlim([0, train_size])
+ax.set_xlim([0, 15000])
 
 for i in range(0, 10):
 	temp = hmm.GaussianHMM(n_components = components_size, covariance_type="diag")
