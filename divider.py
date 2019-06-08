@@ -13,7 +13,7 @@ test_writer = csv.writer(x_test)
 num = 0
 
 for line in input_reader:
-	if(num < 15000):
+	if(num <= 15000):
 		train_writer.writerow(line)
 	else:
 		test_writer.writerow(line)

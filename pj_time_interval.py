@@ -13,8 +13,8 @@ result = open('result.csv', 'w', encoding='utf-8')
 train_reader = csv.reader(x_train)
 result_writer = csv.writer(result)
 
-train_size = 3000
-test_size = 1000
+train_size = 15000
+test_size = 3000
 model_list = []
 components_size = 8
 
@@ -143,12 +143,12 @@ def vectorize_term(li, expected_length):
 	curr = 0
 	next = 0
 	for i in range(1, expected_length+1):
-		next = curr + term * i
+		next = curr + term
 		temp1 = li[int(next)*2]-li[int(curr)*2]
 		temp2 = li[int(next)*2+1]-li[int(curr)*2+1]
 		ret.append(temp1)
 		ret.append(temp2)
-		next = curr	
+		curr = next	
 	return ret
 
 def normalize(li): #normalizing, and zero vector delte
@@ -157,7 +157,8 @@ def normalize(li): #normalizing, and zero vector delte
 	for i in range(0, length):
 		temp = math.sqrt(li[2*i]*li[2*i] + li[2*i+1]*li[2*i+1])
 		if(temp==0.0):
-			continue
+			ret.append(0.0)
+			ret.append(0.0)
 		else:
 			ret.append(li[2*i]/temp)
 			ret.append(li[2*i+1]/temp)
@@ -197,13 +198,14 @@ for line in train_reader:
 			length = int(test_line[0])
 			test_sub_list = test_line[3:3+length*2]
 			test_sub_list = list(map(lambda i: float(i), test_sub_list))
-			sub_list = same_point_delete(sub_list) #same_point_delete
+			test_sub_list = same_point_delete(test_sub_list) #same_point_delete
 			if(len(test_sub_list)<4): #one or zero point.
 				not_passed = not_passed+1
 				continue
-			while len(test_sub_list) < 18: #so small points
+			while len(test_sub_list) < 20: #so small points
 				test_sub_list = add_mid_point(test_sub_list)
 			test_sub_list = vectorize_term(test_sub_list, 8)
+			test_sub_list = normalize(test_sub_list)
 			if(int(len(test_sub_list)/2) != 8):
 				print("the length of vector isn't 8")
 			test_X = np.array(test_sub_list).reshape(-1, 1)
@@ -231,9 +233,10 @@ for line in train_reader:
 	if(len(sub_list)<4): #one or zero point.
 		not_passed = not_passed+1
 		continue
-	while len(sub_list) < 18: #so small points
+	while len(sub_list) < 20: #so small points
 		sub_list = add_mid_point(sub_list)
 	sub_list = vectorize_term(sub_list, 8)
+	sub_list = normalize(sub_list)
 	if(int(len(sub_list)/2) != 8):
 		print("the length of vector isn't 8")
 	X = np.array(sub_list).reshape(-1, 1)
