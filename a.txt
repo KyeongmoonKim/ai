@@ -8,3 +8,4 @@
 //8 hidden state
 41.15% (pj2_4.py, 10 hidden state)
 40.01% (pj2_4.py, 8 hidden state, add_min_vector_uniform, 15000 train, 5000 test)
+40.45% (pj2_4_2.py 8 hidden state, add_min_vector, 1000 train, 3000 test)
