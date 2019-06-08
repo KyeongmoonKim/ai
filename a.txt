@@ -1,4 +1,10 @@
 16.18% (raw data, middle point insertion. pj2_2.py)
 29.77% (difference, middle vector, normalization, train 1000, test 1000, pj2_3.py)
 36.22% (same with the upper. train 3000, test 3000, pj2_3.py)
-42.35% (angle diffenrence vector, after normalization, train 1000, test 1000, pt2_4.py)
+42.35% (angle diffenrence vector, after normalization, train 1000, test 1000, pj2_4.py)
+43.78% (same with the upper, train 5000, test 3000, pj2_4.py)
+39.26% (difference angle and distance, train 1000, test 1000, pj2_5.py)
+36.65% (same with the upper, train 5000, test 3000, pj2_5.py)
+//8 hidden state
+41.15% (pj2_4.py, 10 hidden state)
+40.01% (pj2_4.py, 8 hidden state, add_min_vector_uniform, 15000 train, 5000 test)

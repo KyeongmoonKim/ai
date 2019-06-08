@@ -12,8 +12,8 @@ train_reader = csv.reader(x_train)
 test_reader = csv.reader(x_test)
 result_writer = csv.writer(result)
 
-train_size = 1000
-test_size = 1000
+train_size = 5000
+test_size = 3000
 model_list = []
 components_size = 10
 
@@ -171,8 +171,8 @@ for line in train_reader:
 	while len(sub_list) < 40:
 		sub_list = add_mid_vector_random(sub_list)
 #	sub_list = normalize(sub_list)
-	sub_list = data_process2(sub_list)
-#	sub_list = data_process3(sub_list)
+#	sub_list = data_process2(sub_list)
+	sub_list = data_process3(sub_list)
 	X = np.array(sub_list).reshape(-1, 1)
 	lengths = [2] * int(len(sub_list)/2)
 	model_list[answer].fit(X,lengths) #lengths
@@ -201,8 +201,8 @@ for line in test_reader:
 	while len(sub_list) < 40:
 		sub_list = add_mid_vector_random(sub_list)
 #	sub_list = normalize(sub_list)
-	sub_list = data_process2(sub_list)
-#	sub_list = data_process3(sub_list)
+#	sub_list = data_process2(sub_list)
+	sub_list = data_process3(sub_list)
 	X = np.array(sub_list).reshape(-1, 1)
 	lengths = [2] * int(len(sub_list)/2)
 	Y = []
