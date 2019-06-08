@@ -84,6 +84,7 @@ def add_mid_vector_random(li):
 			ret.append(li[2*i+1]-temp2)
 	return ret
 
+
 def add_mid_point(li):
 	ret = []
 	length = int(len(li)/2)
@@ -105,11 +106,11 @@ def vector_duplicate(li):
 	ret.append(li[1])
 	check = random.randint(0, 2)
 	if(check==0):
-		ret.append(0.9998*li[0]-0.0174*li[1])
-		ret.append(0.0174*li[0]+0.9998*li[1])
+		ret.append(0.9986*li[0]-0.052*li[1])
+		ret.append(0.052*li[0]+0.9986*li[1])
 	else:
-		ret.append(0.9998*li[0]+0.0174*li[1])
-		ret.append(0.9998*li[1]-0.0174*li[0])
+		ret.append(0.9986*li[0]+0.052*li[1])
+		ret.append(0.9986*li[1]-0.052*li[0])
 	return ret
 		
 
@@ -171,7 +172,9 @@ def data_process2(li): #axis-transmation use, angle calculation, if (zero, zero)
 	for i in range(0, length-1):
 		temp1 = li[2*i]*li[2*i+2] + li[2*i+1]*li[2*i+3]
 		temp2 = li[2*i]*li[2*i+3] - li[2*i+1]*li[2*i+2]
-		ret.append(math.atan2(temp2, temp1))
+		ret.append(temp1)
+		ret.append(temp2)
+		#ret.append(math.atan2(temp2, temp1))
 	return ret
 
 x = [0]
@@ -211,10 +214,14 @@ for line in train_reader:
 				not_passed = not_passed+1
 				continue
 			test_sub_list = data_process2(test_sub_list)
+			test_sub_list = add_mid_vector_random(test_sub_list)
+			if(int(len(test_sub_list)/2)!=16):
+				print("not 16")
 			test_X = np.array(test_sub_list).reshape(-1, 1)
+			test_lengths = [2]*int(len(test_sub_list)/2)
 			Y = []
 			for i in range(0, 10):
-				Y.append(model_list[i].score(test_X)) #lengths
+				Y.append(model_list[i].score(test_X,test_lengths)) #lengths
 			inference = Y.index(max(Y))
 			if(inference == int(test_line[2])):
 				test_answer = test_answer + 1
@@ -244,8 +251,12 @@ for line in train_reader:
 		not_passed = not_passed+1
 		coninue
 	sub_list = data_process2(sub_list)
+	sub_list = add_mid_vector_random(sub_list)
+	if(int(len(sub_list)/2)!=16):
+		print("not 16")
 	X = np.array(sub_list).reshape(-1, 1)
-	model_list[answer].fit(X) #lengths
+	lengths = [2] * int(len(sub_list)/2)
+	model_list[answer].fit(X, lengths) #lengths
 	num = num+1
 
 x_train.close()
