@@ -16,7 +16,7 @@ result_writer = csv.writer(result)
 train_size = 5000
 test_size = 1000
 model_list = []
-components_size = 8
+components_size = 6
 
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
