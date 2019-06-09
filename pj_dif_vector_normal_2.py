@@ -13,10 +13,10 @@ result = open('result.csv', 'w', encoding='utf-8')
 train_reader = csv.reader(x_train)
 result_writer = csv.writer(result)
 
-train_size = 4000
+train_size = 14000
 test_size = 1000
 model_list = []
-components_size = [6, 3, 4, 6, 7, 5, 6, 3, 8, 4]
+components_size = 6
 
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
@@ -24,7 +24,7 @@ ax.set_ylim([0,100])
 ax.set_xlim([0, 15000])
 
 for i in range(0, 10):
-	temp = hmm.GaussianHMM(n_components = components_size[i], covariance_type="diag")
+	temp = hmm.GaussianHMM(n_components = components_size, covariance_type="diag")
 	temp.n_iter=100
 	temp.tol=0.01
 	model_list.append(temp)
@@ -151,8 +151,12 @@ def data_process2(li): #axis-transmation use, angle calculation, if (zero, zero)
 x = [0]
 y = [0]
 
+result = []
+for i in range(0, 10):
+	result.append([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 not_passed = 0
 num = 0
+
 for line in train_reader:
 	if(num%50 == 0):
 		print(num)
@@ -168,30 +172,32 @@ for line in train_reader:
 			if(n == test_size):
 				break
 			length = int(test_line[0])
-			test_sub_list = test_line[3:3+length*2]
+			test_sub_list = test_line[3:3+length*2] #point sequence extract
 			test_sub_list = list(map(lambda i: float(i), test_sub_list))
 			if(len(test_sub_list)==2): #only one point : ignore
 				not_passed = not_passed+1
 				continue
-			test_sub_list = data_process(test_sub_list) #vectorize
-#			test_sub_list = zero_delete(test_sub_list) #zero-vector delete
-#			if(len(test_sub_list)<2): #no vetor
-#				not_passed = not_passed+1
-#				continue
+			test_sub_list = data_process(test_sub_list) #vectorize. [p0, p1, ... ,pn] => [p1-p0, p2-p1, ..., pn-pn-1]
 			while len(test_sub_list) < 30:
-				test_sub_list = add_mid_vector(test_sub_list)
-#				test_sub_list = add_mid_point(test_sub_list)
+				test_sub_list = add_mid_vector(test_sub_list) #vector insertion
 			test_sub_list = normalize(test_sub_list)
-#			test_sub_list = data_process2(test_sub_list)
-			test_X = np.array(test_sub_list).reshape(-1, 1)
-			test_lengths = [2] * int(len(test_sub_list)/2)
+			test_X = np.array(test_sub_list).reshape(int(len(test_sub_list)/2), 2)
 			Y = []
 			for i in range(0, 10):
-				Y.append(model_list[i].score(test_X, test_lengths)) #lengths
-			inference = Y.index(max(Y))
-			if(inference == int(test_line[2])):
-				test_answer = test_answer + 1
-			result_writer.writerow([inference, int(test_line[2])])
+				Y.append(model_list[i].score(test_X))
+			inferences = []
+			for i in range(0, 3):
+				temp = Y.index(max(Y))
+				inferences.append(temp)
+				Y[temp] = float('-inf')
+			if(num==train_size): #(answer, inference) pair
+				t1 = int(test_line[2])
+				t2 = inferences[0]
+				result[t1][t2] = result[t1][t2]+1
+			for i in range(0, 3):
+				if(inferences[i] == int(test_line[2])):
+					test_answer = test_answer + 1
+					break
 			n=n+1
 		x_test.close()
 		acculate = (test_answer / n)*100
@@ -207,25 +213,21 @@ for line in train_reader:
 		not_passed = not_passed+1
 		continue
 	sub_list = data_process(sub_list) #vectorize
-#	sub_list = zero_delete(sub_list) #zero-vector delete
-#	if(len(sub_list)<2): #no vetor
-#		not_passed = not_passed+1
-#		continue
 	while len(sub_list) < 30:
 		sub_list = add_mid_vector(sub_list)
-#		sub_list = add_mid_point(sub_list)
 	sub_list = normalize(sub_list)
-#	sub_list = data_process2(sub_list)
-	X = np.array(sub_list).reshape(-1, 1)
-	lengths = [2] * int(len(sub_list)/2)
-	model_list[answer].fit(X,lengths) #lengths
+	X = np.array(sub_list).reshape(int(len(sub_list)/2), 2)
+	model_list[answer].fit(X) #lengths
 	num = num+1
+
+for i in range(0, 10):
+	result_writer.writerow(result[i])
 
 x_train.close()
 plt.plot(x, y)
 plt.xlabel('the number of train samples')
 plt.ylabel('accurate')
 
-plt.title('hmm')
+plt.title('hmm_dif_normal')
 plt.show()
 

@@ -32,7 +32,7 @@ for i in range(0, 10):
 
 num = 0
 
-def data_process(li):
+def data_process(li): #point sequence to vector sequence
 	ret = []
 	length = int(len(li)/2)
 	for i in range(0, length-1):
@@ -40,7 +40,7 @@ def data_process(li):
 		ret.append(li[2*i+3]-li[2*i+1])
 	return ret
 
-def add_mid_vector(li):
+def add_mid_vector(li): #vector divided into two vectors with the noise
 	ret = []
 	length = int(len(li)/2)
 	for i in range(0, length):
@@ -52,7 +52,7 @@ def add_mid_vector(li):
 		ret.append(li[2*i+1]-temp2)
 	return ret
 
-def add_mid_vector_uniform(li):
+def add_mid_vector_uniform(li):#vector divided into two vectors without the noise
 	ret = []
 	length = int(len(li)/2)
 	for i in range(0, length):
@@ -64,7 +64,7 @@ def add_mid_vector_uniform(li):
 		ret.append(li[2*i+1]-temp2)
 	return ret
 
-def add_mid_vector_random(li):
+def add_mid_vector_random(li): #add_mid_vector with random noise
 	ret = []
 	length = int(len(li)/2)
 	for i in range(0, length):
@@ -85,7 +85,7 @@ def add_mid_vector_random(li):
 			ret.append(li[2*i+1]-temp2)
 	return ret
 
-def random_shake(li):
+def random_shake(li): #add noise into angle differnce vector
 	ret = []
 	length = int(len(li)/2)
 	for i in range(0, length):
@@ -106,7 +106,7 @@ def random_shake(li):
 			ret.append(temp2)
 	return ret
 
-def add_mid_point(li):
+def add_mid_point(li): #add mid point into point sequences.
 	ret = []
 	length = int(len(li)/2)
 	for i in range(0, length-1):
@@ -118,7 +118,7 @@ def add_mid_point(li):
 	ret.append(li[len(li)-1])
 	return ret
 
-def vector_duplicate(li):
+def vector_duplicate(li): #no use
 	ret = []
 	if(len(li)!=2):
 		print("unexpected length : the number of vectors isn't 1(in vector_duplicate)")
@@ -146,7 +146,7 @@ def zero_delete(li): #zero vector delete
 			ret.append(li[2*i+1])
 	return ret
 
-def same_point_delete(li):
+def same_point_delete(li): #delete the adjacent same point in numeral gestures. 
 	ret = []
 	length = int(len(li)/2)
 	for i in range(0, length-1):
@@ -159,7 +159,7 @@ def same_point_delete(li):
 	ret.append(li[len(li)-1])	
 	return ret
 
-def vectorize_term(li, expected_length):
+def vectorize_term(li, expected_length): #points seqence compressed into expected_length vector list 
 	ret = []
 	term = (int(len(li)/2)-1)/expected_length
 	curr = 0
@@ -187,7 +187,7 @@ def normalize(li): #normalizing, and zero vector delte
 
 print("train start")
 
-def data_process2(li): #axis-transmation use, angle calculation, if (zero, zero):continue
+def data_process2(li): #axis-transformation use, angle difference vector calculation.
 	ret = []
 	length = int(len(li)/2)
 	for i in range(0, length-1):
@@ -195,7 +195,6 @@ def data_process2(li): #axis-transmation use, angle calculation, if (zero, zero)
 		temp2 = li[2*i]*li[2*i+3] - li[2*i+1]*li[2*i+2]
 		ret.append(temp1)
 		ret.append(temp2)
-		#ret.append(math.atan2(temp2, temp1))
 	return ret
 
 x = [0]
@@ -230,27 +229,26 @@ for line in train_reader:
 				continue
 			while len(test_sub_list) < 20: #so small points
 				test_sub_list = add_mid_point(test_sub_list)
-			test_sub_list = vectorize_term(test_sub_list, 9)
-			test_sub_list = normalize(test_sub_list)
+			test_sub_list = vectorize_term(test_sub_list, 9) #compress to 9 vectors
+			test_sub_list = normalize(test_sub_list) #normalize
 			if(int(len(test_sub_list)/2) != 9):
 				print("the length of vector isn't 9")
 				not_passed = not_passed+1
 				continue
-			test_sub_list = data_process2(test_sub_list)
-			test_sub_list = random_shake(test_sub_list)
+			test_sub_list = data_process2(test_sub_list) #compute the angle differecne vectors
+			test_sub_list = random_shake(test_sub_list) #add noise.
 			if(int(len(test_sub_list)/2)!=8):
 				print("not 16")
 			test_X = np.array(test_sub_list).reshape(8, 2)
-			#test_lengths = [2]*int(len(test_sub_list)/2)
 			Y = []
-			for i in range(0, 10):
-				Y.append(model_list[i].score(test_X)) #lengths
+			for i in range(0, 10): #compute the likelihood
+				Y.append(model_list[i].score(test_X))
 			inference = Y.index(max(Y))
 			if(num==train_size): #(answer, inference) pair
 				t1 = int(test_line[2])
 				t2 = inference
 				result[t1][t2] = result[t1][t2]+1
-			if(inference == int(test_line[2])):
+			if(inference == int(test_line[2])): #answer check
 				test_answer = test_answer + 1
 			n=n+1
 		x_test.close()
@@ -268,21 +266,20 @@ for line in train_reader:
 	if(len(sub_list)<4): #one or zero point.
 		not_passed = not_passed+1
 		continue
-	while len(sub_list) < 20: #so small points
+	while len(sub_list) < 20: #so small points, mid point insertion
 		sub_list = add_mid_point(sub_list)
-	sub_list = vectorize_term(sub_list, 9)
+	sub_list = vectorize_term(sub_list, 9) #compress to 9 vectors
 	sub_list = normalize(sub_list)
 	if(int(len(sub_list)/2) != 9):
 		print("the length of vector isn't 9")
 		not_passed = not_passed+1
 		coninue
-	sub_list = data_process2(sub_list)
-	sub_list = random_shake(sub_list)
+	sub_list = data_process2(sub_list) #compute the angle difference vector.
+	sub_list = random_shake(sub_list) #insert noise.
 	if(int(len(sub_list)/2)!=8):
 		print("not 8")
 	X = np.array(sub_list).reshape(8, 2)
-	#lengths = [2] * int(len(sub_list)/2)
-	model_list[answer].fit(X) #lengths
+	model_list[answer].fit(X) 
 	num = num+1
 
 

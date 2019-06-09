@@ -13,20 +13,21 @@ result = open('result.csv', 'w', encoding='utf-8')
 train_reader = csv.reader(x_train)
 result_writer = csv.writer(result)
 
-train_size = 5000
+train_size = 14000
 test_size = 1000
 model_list = []
-components_size = 8
+components_size = 6
 
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
 ax.set_ylim([0,100])
-ax.set_xlim([0, train_size])
+ax.set_xlim([0, 15000])
 
 for i in range(0, 10):
 	temp = hmm.GaussianHMM(n_components = components_size, covariance_type="diag")
 	temp.n_iter=100
 	temp.tol=0.01
+	temp.n_features = 2
 	model_list.append(temp)
 
 num = 0
@@ -173,21 +174,12 @@ for line in train_reader:
 			if(len(test_sub_list)==2): #only one point : ignore
 				not_passed = not_passed+1
 				continue
-#			test_sub_list = data_process(test_sub_list) #vectorize
-#			test_sub_list = zero_delete(test_sub_list) #zero-vector delete
-#			if(len(test_sub_list)<2): #no vetor
-#				not_passed = not_passed+1
-#				continue
 			while len(test_sub_list) < 30:
-#				test_sub_list = add_mid_vector(test_sub_list)
 				test_sub_list = add_mid_point(test_sub_list)
-#			test_sub_list = normalize(test_sub_list)
-#			test_sub_list = data_process2(test_sub_list)
-			test_X = np.array(test_sub_list).reshape(-1, 1)
-			test_lengths = [2] * int(len(test_sub_list)/2)
+			test_X = np.array(test_sub_list).reshape(int(len(test_sub_list)/2), 2)
 			Y = []
 			for i in range(0, 10):
-				Y.append(model_list[i].score(test_X, test_lengths)) #lengths
+				Y.append(model_list[i].score(test_X)) #lengths
 			inference = Y.index(max(Y))
 			if(inference == int(test_line[2])):
 				test_answer = test_answer + 1
@@ -206,19 +198,10 @@ for line in train_reader:
 	if(len(sub_list)==2): #only one point : ignore
 		not_passed = not_passed+1
 		continue
-#	sub_list = data_process(sub_list) #vectorize
-#	sub_list = zero_delete(sub_list) #zero-vector delete
-#	if(len(sub_list)<2): #no vetor
-#		not_passed = not_passed+1
-#		continue
 	while len(sub_list) < 30:
-#		sub_list = add_mid_vector(sub_list)
 		sub_list = add_mid_point(sub_list)
-#	sub_list = normalize(sub_list)
-#	sub_list = data_process2(sub_list)
-	X = np.array(sub_list).reshape(-1, 1)
-	lengths = [2] * int(len(sub_list)/2)
-	model_list[answer].fit(X,lengths) #lengths
+	X = np.array(sub_list).reshape(int(len(sub_list)/2), 2)
+	model_list[answer].fit(X) #lengths
 	num = num+1
 
 x_train.close()
@@ -226,6 +209,6 @@ plt.plot(x, y)
 plt.xlabel('the number of train samples')
 plt.ylabel('accurate')
 
-plt.title('hmm')
+plt.title('hmm_raw_data_1')
 plt.show()
 

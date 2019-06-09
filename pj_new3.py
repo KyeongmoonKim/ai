@@ -27,7 +27,7 @@ for i in range(0, 10):
 	temp = hmm.GaussianHMM(n_components = components_size, covariance_type="diag")
 	temp.n_iter=100
 	temp.tol=0.01
-	temp.n_features=2
+	temp.n_features = 2
 	model_list.append(temp)
 
 num = 0
@@ -106,38 +106,6 @@ def random_shake(li):
 			ret.append(temp2)
 	return ret
 
-def data_process3(li): #random_shake + data_process2, return value : (angle, length ratio)
-	ret = []
-	length = int(len(li)/2)
-	for i in range(0, length-1):
-		len1 = math.sqrt(li[2*i]*li[2*i] + li[2*i+1]*li[2*i+1])
-		len2 = math.sqrt(li[2*i+2]*li[2*i+2] + li[2*i+3]*li[2*i+3])
-		temp1 = li[2*i]*li[2*i+2] + li[2*i+1]*li[2*i+3]
-		temp2 = li[2*i]*li[2*i+3] - li[2*i+1]*li[2*i+2]
-		temp1 = temp1/(len1*len2) #angle vector x axis value
-		temp2 = temp2/(len1*len2) #angle vector y axis value
-		check = random.randint(0, 10)
-		check2 = random.randint(0, 3)
-		check2 = check2 * math.pi / 180.0
-		x = math.cos(check2)
-		y = math.sin(check2)
-		if(check<5):
-			temp1 = temp1*x-y*temp2
-			temp2 = y*temp1+x*temp2
-		else:
-			temp1 = temp1*x+y*temp2
-			temp2 = x*temp2-y*temp1
-		ret.append(math.atan2(temp2, temp1))
-		ret.append(len2/len1)
-		#ret.append(math.atan2(temp2, temp1))
-	return ret
-
-def vector_to_angle(li):
-	ret = []
-	length = int(len(li)/2)
-	for i in range(0, length):
-		ret.append(math.atan2(li[2*i+1], li[2*i]))
-	return ret
 def add_mid_point(li):
 	ret = []
 	length = int(len(li)/2)
@@ -205,18 +173,6 @@ def vectorize_term(li, expected_length):
 		curr = next	
 	return ret
 
-def zero_vector_check(li):
-	check = 0
-	length = int(len(li)/2)
-	for i in range(0, length):
-		temp = math.sqrt(li[2*i]*li[2*i] + li[2*i+1]*li[2*i+1])
-		if(temp==0.0):
-			check = 1
-			return check
-		else:
-			continue
-	return check
-
 def normalize(li): #normalizing, and zero vector delte
 	ret = []
 	length = int(len(li)/2)
@@ -275,32 +231,18 @@ for line in train_reader:
 			while len(test_sub_list) < 20: #so small points
 				test_sub_list = add_mid_point(test_sub_list)
 			test_sub_list = vectorize_term(test_sub_list, 9)
-			is_zero = zero_vector_check(test_sub_list)
-			if(is_zero == 1):
-				print("the length of vector isn't 9")
-				not_passed = not_passed+1
-				continue
-			test_sub_list = data_process3(test_sub_list)
-			if(int(len(test_sub_list)/2)!=8):
-				print("not 16")
-			test_X = np.array(test_sub_list).reshape(8, 2)
-			#test_lengths = [2]*int(len(test_sub_list)/2)
+			test_sub_list = normalize(test_sub_list)
+			test_X = np.array(test_sub_list).reshape(int(len(test_sub_list)/2), 2)
 			Y = []
 			for i in range(0, 10):
 				Y.append(model_list[i].score(test_X)) #lengths
-			inferences = []
-			for i in range(0, 3):
-				temp = Y.index(max(Y))
-				inferences.append(temp)
-				Y[temp] = float('-inf')
+			inference = Y.index(max(Y))
 			if(num==train_size): #(answer, inference) pair
 				t1 = int(test_line[2])
-				t2 = inferences[0]
+				t2 = inference
 				result[t1][t2] = result[t1][t2]+1
-			for i in range(0, 3):
-				if(inferences[i] == int(test_line[2])):
-					test_answer = test_answer + 1
-					break
+			if(inference == int(test_line[2])):
+				test_answer = test_answer + 1
 			n=n+1
 		x_test.close()
 		acculate = (test_answer / n)*100
@@ -320,17 +262,8 @@ for line in train_reader:
 	while len(sub_list) < 20: #so small points
 		sub_list = add_mid_point(sub_list)
 	sub_list = vectorize_term(sub_list, 9)
-	sub_list_temp = sub_list[0:len(sub_list)]
-	is_zero = zero_vector_check(sub_list)
-	if(is_zero==1): 
-		print("zero vector exsts")
-		not_passed = not_passed+1
-		coninue
-	sub_list = data_process3(sub_list)
-	if(int(len(sub_list)/2)!=8):
-		print("not 8")
-	X = np.array(sub_list).reshape(8, 2)
-	#lengths = [2] * int(len(sub_list)/2)
+	sub_list = normalize(sub_list)
+	X = np.array(sub_list).reshape(int(len(sub_list)/2), 2)
 	model_list[answer].fit(X) #lengths
 	num = num+1
 
